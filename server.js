@@ -26,11 +26,11 @@ app.post("/submit", async (req, res) => {
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
     errors.push("Invalid email");
 
-  if (!/^\d{10}$/.test(phone_number))
-    errors.push("Invalid phone number");
-
-  if (!/^[0-9][A-Za-z0-9]{5}$/.test(eircode))
-    errors.push("Invalid eircode");
+  if (!/^\d{9,10}$/.test(phone_number))
+    errors.push("Invalid phone number (must be 9 or 10 digits)");
+  
+  if (!/^[A-Za-z][0-9]{2}[A-Za-z0-9]{4}$/.test(eircode))
+    errors.push("Invalid eircode format");  
 
   if (errors.length > 0) {
     return res.status(400).json({
