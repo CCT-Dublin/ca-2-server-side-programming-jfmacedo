@@ -39,4 +39,45 @@
 
   <pre id="result"></pre>
 
-  
+  <script>
+    document.getElementById("dataForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const data = {
+        first_name: first_name.value.trim(),
+        second_name: second_name.value.trim(),
+        email: email.value.trim(),
+        phone_number: phone_number.value.trim(),
+        eircode: eircode.value.trim()
+      };
+
+      const errors = [];
+
+      if (!/^[A-Za-z0-9]{1,20}$/.test(data.first_name))
+        errors.push("Invalid first name");
+
+      if (!/^[A-Za-z0-9]{1,20}$/.test(data.second_name))
+        errors.push("Invalid second name");
+
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email))
+        errors.push("Invalid email");
+
+      if (!/^\d{10}$/.test(data.phone_number))
+        errors.push("Phone must be 10 digits");
+
+      if (!/^[0-9][A-Za-z0-9]{5}$/.test(data.eircode))
+        errors.push("Invalid Eircode");
+
+      if (errors.length > 0) {
+        document.getElementById("result").textContent =
+          "Errors:\n" + errors.join("\n");
+        return;
+      }
+
+      document.getElementById("result").textContent =
+        "Client-side validation passed!";
+    });
+  </script>
+
+</body>
+</html>
