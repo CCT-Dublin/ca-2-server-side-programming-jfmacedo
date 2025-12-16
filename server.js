@@ -1,20 +1,20 @@
 const express = require("express");
 const path = require("path");
+const { insertUser } = require("./database");
 
 const app = express();
 const PORT = 3000;
 
-// Middleware for reading form data
+// Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Serving static files
+// Static files
 app.use(express.static(path.join(__dirname, "public")));
 
-// POST route to receive the form
-app.post("/submit", (req, res) => {
+// POST route
+app.post("/submit", async (req, res) => {
   const { first_name, second_name, email, phone_number, eircode } = req.body;
-
   const errors = [];
 
   if (!/^[A-Za-z0-9]{1,20}$/.test(first_name))
@@ -39,18 +39,33 @@ app.post("/submit", (req, res) => {
     });
   }
 
-  // For now, we're only returning success
-  res.json({
-    success: true,
-    message: "Server-side validation passed"
-  });
+  try {
+    await insertUser({
+      first_name,
+      second_name,
+      email,
+      phone_number,
+      eircode
+    });
+
+    res.json({
+      success: true,
+      message: "Data saved to database"
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: "Database error"
+    });
+  }
 });
 
-// Test route
+// Root route
 app.get("/", (req, res) => {
   res.send("Server is running");
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
