@@ -52,7 +52,7 @@ app.post("/submit", async (req, res) => {
       success: true,
       message: "Data saved to database"
     });
-  } catch (err) {
+} catch (err) {
     res.status(500).json({
       success: false,
       error: "Database error"
