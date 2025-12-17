@@ -11,23 +11,27 @@ let inserted = 0;
 let errors = [];
 
 fs.createReadStream("personal_information.csv")
-  .pipe(csv())
+.pipe(csv({
+    mapHeaders: ({ header }) => header.replace(/^\uFEFF/, "").trim(),
+    mapValues: ({ value }) => (value ? value.trim() : value)
+  }))  
   .on("data", async (row) => {
     rowNumber++;
 
-    const first_name = row.first_name;
-    const second_name = row.second_name || row.last_name; // accept last_name
-    const email = row.email;
-    const phone_number = row.phone;
-    const eircode = row.eircode;
+const first_name = row.first_name;
+const second_name = row.second_name || row.last_name;
+const email = row.email;
+const phone_number = row.phone;
+const eircode = row.eir_code || row.eircode;
+
 
     let rowErrors = [];
 
-    if (!first_name || !/^[A-Za-z]{1,20}$/.test(first_name))
-      rowErrors.push("Invalid first name");
-
-    if (!second_name || !/^[A-Za-z]{1,20}$/.test(second_name))
-      rowErrors.push("Invalid second name");
+    if (!first_name || !/^[A-Za-zÀ-ÿ\s-]{1,40}$/.test(first_name))
+        rowErrors.push("Invalid first name");
+      
+    if (!second_name || !/^[A-Za-zÀ-ÿ\s-]{1,40}$/.test(second_name))
+        rowErrors.push("Invalid second name");            
 
     if (!email || !/^\S+@\S+\.\S+$/.test(email))
       rowErrors.push("Invalid email");
@@ -38,6 +42,11 @@ fs.createReadStream("personal_information.csv")
     if (!eircodeRegex.test(eircode))
       rowErrors.push("Invalid eircode");
 
+    if (rowNumber === 2) {
+        console.log("CSV headers detected:", Object.keys(row));
+        console.log("First row sample:", row);
+      }
+      
     if (rowErrors.length > 0) {
       errors.push({
         row: rowNumber,
