@@ -4,7 +4,7 @@ const { insertUser } = require("./database");
 
 // Regex rules (same as backend)
 const phoneRegex = /^\d{9,10}$/;
-const eircodeRegex = /^[A-Za-z][0-9]{2}[A-Za-z0-9]{4}$/;
+const eircodeRegex = /^[A-Za-z0-9]{6}$/;
 
 let rowNumber = 1; // header
 let inserted = 0;
