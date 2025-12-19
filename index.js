@@ -9,6 +9,8 @@ const eircodeRegex = /^[A-Za-z0-9]{6}$/;
 let rowNumber = 1;
 let inserted = 0;
 let errors = [];
+let insertPromises = [];
+
 
 fs.createReadStream(path.join(__dirname, "personal_information.csv"))
   .on("error", (err) => {
@@ -59,25 +61,31 @@ fs.createReadStream(path.join(__dirname, "personal_information.csv"))
       return;
     }
 
-    try {
-      await insertUser({
-        first_name,
-        second_name,
-        email,
-        phone_number,
-        eircode
-      });
+    const insertPromise = insertUser({
+      first_name,
+      second_name,
+      email,
+      phone_number,
+      eircode
+    })
+    .then(() => {
       inserted++;
-    } catch (err) {
-      console.error(`Erro ao inserir linha ${rowNumber}:`, err.message);
+    })
+    .catch(() => {
       errors.push({
         row: rowNumber,
         errors: ["Database insert failed"]
       });
-    }
+    });
+    
+    insertPromises.push(insertPromise);
+    
   })
-  .on("end", () => {
+  .on("end", async () => {
+    await Promise.allSettled(insertPromises);
+  
     console.log("CSV Import Finished");
     console.log("Inserted records:", inserted);
     console.log("Errors:", errors);
   });
+  
