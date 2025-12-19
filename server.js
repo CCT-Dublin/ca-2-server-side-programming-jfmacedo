@@ -1,79 +1,77 @@
-const express = require("express");
-const path = require("path");
-const { insertUser } = require("./database");
+import express from "express";
+import helmet from "helmet";
+import pool from "./database.js";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-server.on("error", (err) => {
-  console.error("❌ Server failed:", err.message);
-});
-
-// Middleware
-app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Static files
-app.use(express.static(path.join(__dirname, "public")));
+// Security Headers
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
+      imgSrc: ["'self'"],
+    },
+  })
+);
 
-// POST route
-app.post("/submit", async (req, res) => {
-  const { first_name, second_name, email, phone_number, eircode } = req.body;
-  const errors = [];
-
-  if (!/^[A-Za-z0-9]{1,20}$/.test(first_name))
-    errors.push("Invalid first name");
-
-  if (!/^[A-Za-z0-9]{1,20}$/.test(second_name))
-    errors.push("Invalid second name");
-
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
-    errors.push("Invalid email");
-
-  if (!/^\d{9,10}$/.test(phone_number))
-    errors.push("Invalid phone number (must be 9 or 10 digits)");
-  
-  if (!/^[A-Za-z][0-9]{2}[A-Za-z0-9]{4}$/.test(eircode))
-    errors.push("Invalid eircode format");  
-
-  if (errors.length > 0) {
-    return res.status(400).json({
-      success: false,
-      errors
-    });
+pool.query("DESCRIBE mysql_table", (err) => {
+  if (err) {
+    console.error("Schema incorrect or table missing in MySQL!");
+  } else {
+    console.log("Schema verified – mysql_table is ready");
   }
+});
 
+// ROUTES
+// ======================
+app.post("/submit", async (req, res) => {
   try {
-    await insertUser({
+    const { first_name, second_name, email, phone_number, eircode } = req.body;
+
+    if (!first_name || !second_name || !email || !phone_number || !eircode) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const insertQuery = `
+      INSERT INTO mysql_table (first_name, second_name, email, phone_number, eircode)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+
+    await pool.query(insertQuery, [
       first_name,
       second_name,
       email,
       phone_number,
-      eircode
-    });
+      eircode,
+    ]);
 
-    res.json({
-      success: true,
-      message: "Data saved to database"
+    return res.status(201).json({
+      message: "Data submitted successfully",
+      data: { first_name, second_name, email },
     });
-} catch (err) {
-    res.status(500).json({
-      success: false,
-      error: "Database error"
-    });
+  } catch (err) {
+    console.error("Error inserting user:", err.message);
+    return res.status(500).json({ error: "Server error inserting record" });
   }
 });
 
-// Root route
+// Test Route
 app.get("/", (req, res) => {
-  res.send("Server is running");
+  res.send("Server is running ✔️");
 });
 
-// Start server
-app.listen(PORT, () => {
+const PORT = process.env.PORT || 3000;
+
+const server = app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+});
+
+// Check port failure
+server.on("error", (err) => {
+  console.error("Failed to start server:", err.message);
 });

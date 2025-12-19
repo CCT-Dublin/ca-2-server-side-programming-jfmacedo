@@ -13,14 +13,14 @@ const pool = mysql.createPool({
 // Create the table if it doesn't already exist
 async function ensureTable() {
   const sql = `
-    CREATE TABLE IF NOT EXISTS users (
+    CREATE TABLE IF NOT EXISTS mysql_table (
       id INT AUTO_INCREMENT PRIMARY KEY,
-      first_name VARCHAR(20) NOT NULL,
-      second_name VARCHAR(20) NOT NULL,
-      email VARCHAR(255) NOT NULL,
-      phone_number CHAR(10) NOT NULL,
-      eircode CHAR(6) NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      first_name   VARCHAR(20) NOT NULL,
+      second_name  VARCHAR(20) NOT NULL,
+      email        VARCHAR(255) NOT NULL,
+      phone_number CHAR(10)     NOT NULL,
+      eircode      CHAR(6)      NOT NULL,
+      created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `;
   await pool.query(sql);

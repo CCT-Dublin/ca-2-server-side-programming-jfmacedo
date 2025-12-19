@@ -5,6 +5,8 @@ const { insertUser } = require("./database");
 
 const nameRegex = /^[A-Za-z0-9]{1,20}$/;
 const phoneRegex = /^[0-9]{10}$/;
+const eircodeRegex = /^[0-9][A-Za-z0-9]{5}$/;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 let rowNumber = 1;
 let inserted = 0;
