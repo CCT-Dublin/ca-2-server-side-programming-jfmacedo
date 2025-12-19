@@ -3,8 +3,8 @@ const path = require("path");
 const csv = require("csv-parser");
 const { insertUser } = require("./database");
 
-const phoneRegex = /^\d{9,10}$/;   
-const eircodeRegex = /^[A-Za-z0-9]{6}$/;
+const nameRegex = /^[A-Za-z0-9]{1,20}$/;
+const phoneRegex = /^[0-9]{10}$/;
 
 let rowNumber = 1;
 let inserted = 0;

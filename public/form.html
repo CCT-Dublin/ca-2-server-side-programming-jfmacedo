@@ -31,7 +31,7 @@
 
     <label>
       Eircode:
-      <input type="text" id="eircode" maxlength="7" required>
+      <input type="text" id="eircode" maxlength="6" required>
     </label><br><br>
 
     <button type="submit">Send</button>
@@ -51,11 +51,27 @@
         eircode: eircode.value.trim()
       };
   
+      const nameRegex = /^[A-Za-z0-9]{1,20}$/;
+      const phoneRegex = /^[0-9]{10}$/;
+      const eircodeRegex = /^[0-9][A-Za-z0-9]{5}$/;
+  
+      if (!nameRegex.test(data.first_name)) {
+        return alert("❌ First name invalid! Only letters or numbers, max 20 chars.");
+      }
+      if (!nameRegex.test(data.second_name)) {
+        return alert("❌ Second name invalid! Only letters or numbers, max 20 chars.");
+      }
+      if (!phoneRegex.test(data.phone_number)) {
+        return alert("❌ Phone must contain only numbers and be exactly 10 digits.");
+      }
+      if (!eircodeRegex.test(data.eircode)) {
+        return alert("❌ Eircode must start with a number and have 6 alphanumeric chars.");
+      }
+  
+      // If validation passes, send to server
       const response = await fetch("/submit", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       });
   
@@ -64,6 +80,7 @@
         JSON.stringify(result, null, 2);
     });
   </script>
+  
   
 
 </body>
