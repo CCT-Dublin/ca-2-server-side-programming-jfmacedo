@@ -1,37 +1,41 @@
 const fs = require("fs");
+const path = require("path"); 
 const csv = require("csv-parser");
 const { insertUser } = require("./database");
 
-// Regex rules (same as backend)
-const phoneRegex = /^\d{9,10}$/;
+const phoneRegex = /^\d{9,10}$/;   
 const eircodeRegex = /^[A-Za-z0-9]{6}$/;
 
-let rowNumber = 1; // header
+let rowNumber = 1;
 let inserted = 0;
 let errors = [];
 
-fs.createReadStream("personal_information.csv")
-.pipe(csv({
+fs.createReadStream(path.join(__dirname, "personal_information.csv"))
+  .on("error", (err) => {
+    console.error("Erro ao abrir o CSV:", err.message);
+  })
+  .pipe(csv({
     mapHeaders: ({ header }) => header.replace(/^\uFEFF/, "").trim(),
     mapValues: ({ value }) => (value ? value.trim() : value)
-  }))  
+  }))
   .on("data", async (row) => {
     rowNumber++;
 
-const first_name = row.first_name;
-const second_name = row.second_name || row.last_name;
-const email = row.email;
-const phone_number = row.phone;
-const eircode = row.eir_code || row.eircode;
-
+    // Mapping the CSV fields to what we need
+    const first_name = row.first_name;
+    const second_name = row.second_name || row.last_name;
+    const email = row.email;
+    const phone_number = row.phone;
+    const eircode = row.eir_code || row.eircode;
 
     let rowErrors = [];
 
+    // Validations
     if (!first_name || !/^[A-Za-zÀ-ÿ\s-]{1,40}$/.test(first_name))
-        rowErrors.push("Invalid first name");
-      
+      rowErrors.push("Invalid first name");
+
     if (!second_name || !/^[A-Za-zÀ-ÿ\s-]{1,40}$/.test(second_name))
-        rowErrors.push("Invalid second name");            
+      rowErrors.push("Invalid second name");
 
     if (!email || !/^\S+@\S+\.\S+$/.test(email))
       rowErrors.push("Invalid email");
@@ -39,14 +43,14 @@ const eircode = row.eir_code || row.eircode;
     if (!phoneRegex.test(phone_number))
       rowErrors.push("Invalid phone number");
 
-    if (!eircodeRegex.test(eircode))
+    if (!eircode || !eircodeRegex.test(eircode))
       rowErrors.push("Invalid eircode");
 
     if (rowNumber === 2) {
-        console.log("CSV headers detected:", Object.keys(row));
-        console.log("First row sample:", row);
-      }
-      
+      console.log("CSV headers detected:", Object.keys(row));
+      console.log("First row sample:", row);
+    }
+
     if (rowErrors.length > 0) {
       errors.push({
         row: rowNumber,
@@ -65,6 +69,7 @@ const eircode = row.eir_code || row.eircode;
       });
       inserted++;
     } catch (err) {
+      console.error(`Erro ao inserir linha ${rowNumber}:`, err.message);
       errors.push({
         row: rowNumber,
         errors: ["Database insert failed"]

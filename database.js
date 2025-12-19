@@ -1,6 +1,6 @@
 const mysql = require("mysql2/promise");
 
-// Adjust if necessary (username, password, database)
+// Adjust if your username/password are different
 const pool = mysql.createPool({
   host: "localhost",
   user: "root",
@@ -10,7 +10,7 @@ const pool = mysql.createPool({
   connectionLimit: 10
 });
 
-// Create the table if it doesn't exist
+// Create the table if it doesn't already exist
 async function ensureTable() {
   const sql = `
     CREATE TABLE IF NOT EXISTS users (
@@ -26,7 +26,7 @@ async function ensureTable() {
   await pool.query(sql);
 }
 
-// Enter valid data.
+// Insert a user into the table
 async function insertUser(data) {
   await ensureTable();
 
@@ -47,3 +47,4 @@ async function insertUser(data) {
 }
 
 module.exports = { insertUser };
+
