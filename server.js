@@ -1,77 +1,81 @@
-import express from "express";
-import helmet from "helmet";
-import pool from "./database.js";
+const path = require("path");
+const express = require("express");
+const helmet = require("helmet");
+const { ensureTable, insertUser } = require("./database");
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Security Headers
 app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'"],
-      imgSrc: ["'self'"],
-    },
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:"]
+      }
+    }
   })
 );
 
-pool.query("DESCRIBE mysql_table", (err) => {
-  if (err) {
-    console.error("Schema incorrect or table missing in MySQL!");
-  } else {
-    console.log("Schema verified – mysql_table is ready");
-  }
+app.use(express.static(path.join(__dirname, "public")));
+
+const nameRegex = /^[A-Za-z0-9]{1,20}$/;
+const phoneRegex = /^\d{10}$/;
+const eircodeRegex = /^\d[A-Za-z0-9]{5}$/;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validatePayload(body) {
+  const errors = [];
+
+  const first_name = (body.first_name || "").trim();
+  const second_name = (body.second_name || "").trim();
+  const email = (body.email || "").trim();
+  const phone_number = (body.phone_number || "").trim();
+  const eircode = (body.eircode || "").trim();
+
+  if (!nameRegex.test(first_name)) errors.push("Invalid first_name");
+  if (!nameRegex.test(second_name)) errors.push("Invalid second_name");
+  if (!emailRegex.test(email)) errors.push("Invalid email");
+  if (!phoneRegex.test(phone_number)) errors.push("Invalid phone_number");
+  if (!eircodeRegex.test(eircode)) errors.push("Invalid eircode");
+
+  return { errors, cleaned: { first_name, second_name, email, phone_number, eircode } };
+}
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "form.html"));
 });
 
-// ROUTES
-// ======================
 app.post("/submit", async (req, res) => {
+  const { errors, cleaned } = validatePayload(req.body);
+  if (errors.length > 0) {
+    return res.status(400).json({ ok: false, errors });
+  }
+
   try {
-    const { first_name, second_name, email, phone_number, eircode } = req.body;
-
-    if (!first_name || !second_name || !email || !phone_number || !eircode) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    const insertQuery = `
-      INSERT INTO mysql_table (first_name, second_name, email, phone_number, eircode)
-      VALUES (?, ?, ?, ?, ?)
-    `;
-
-    await pool.query(insertQuery, [
-      first_name,
-      second_name,
-      email,
-      phone_number,
-      eircode,
-    ]);
-
-    return res.status(201).json({
-      message: "Data submitted successfully",
-      data: { first_name, second_name, email },
-    });
+    await insertUser(cleaned);
+    return res.json({ ok: true, message: "Record inserted successfully" });
   } catch (err) {
     console.error("Error inserting user:", err.message);
-    return res.status(500).json({ error: "Server error inserting record" });
+    return res.status(500).json({ ok: false, error: "Server error inserting record" });
   }
 });
 
-// Test Route
-app.get("/", (req, res) => {
-  res.send("Server is running ✔️");
-});
+async function start() {
+  try {
+    await ensureTable();
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error("Startup failed:", err.message);
+    process.exit(1);
+  }
+}
 
-const PORT = process.env.PORT || 3000;
-
-const server = app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
-
-// Check port failure
-server.on("error", (err) => {
-  console.error("Failed to start server:", err.message);
-});
+start();

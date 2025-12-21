@@ -1,91 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
-
   <head>
-    <meta charset="UTF-8">
-    <title>Register Your Contact Details</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CA2 Form</title>
+    <link rel="stylesheet" href="./style.css" />
   </head>
-  
-<body>
+  <body>
+    <main class="container">
+      <h1>Submit User Data</h1>
 
-  <h1>Submit Data</h1>
+      <div id="msg" class="msg"></div>
 
-  <form id="dataForm">
-    <label>
-      First Name:
-      <input type="text" id="first_name" maxlength="20" required>
-    </label><br><br>
+      <form id="userForm">
+        <label>First name</label>
+        <input type="text" id="first_name" maxlength="20" required />
 
-    <label>
-      Second Name:
-      <input type="text" id="second_name" maxlength="20" required>
-    </label><br><br>
+        <label>Second name</label>
+        <input type="text" id="second_name" maxlength="20" required />
 
-    <label>
-      Email:
-      <input type="email" id="email" required>
-    </label><br><br>
+        <label>Email</label>
+        <input type="email" id="email" required />
 
-    <label>
-      Phone Number:
-      <input type="text" id="phone_number" maxlength="10" required>
-    </label><br><br>
+        <label>Phone number (10 digits)</label>
+        <input type="text" id="phone_number" maxlength="10" required />
 
-    <label>
-      Eircode:
-      <input type="text" id="eircode" maxlength="6" required>
-    </label><br><br>
+        <label>Eircode (6 chars, starts with a number)</label>
+        <input type="text" id="eircode" maxlength="6" required />
 
-    <button type="submit">Send</button>
-  </form>
+        <button type="submit">Submit</button>
+      </form>
+    </main>
 
-  <pre id="result"></pre>
-
-  <script>
-    document.getElementById("dataForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
-  
-      const data = {
-        first_name: first_name.value.trim(),
-        second_name: second_name.value.trim(),
-        email: email.value.trim(),
-        phone_number: phone_number.value.trim(),
-        eircode: eircode.value.trim()
-      };
-  
+    <script>
       const nameRegex = /^[A-Za-z0-9]{1,20}$/;
-      const phoneRegex = /^[0-9]{10}$/;
-      const eircodeRegex = /^[0-9][A-Za-z0-9]{5}$/;
-  
-      if (!nameRegex.test(data.first_name)) {
-        return alert("❌ First name invalid! Only letters or numbers, max 20 chars.");
-      }
-      if (!nameRegex.test(data.second_name)) {
-        return alert("❌ Second name invalid! Only letters or numbers, max 20 chars.");
-      }
-      if (!phoneRegex.test(data.phone_number)) {
-        return alert("❌ Phone must contain only numbers and be exactly 10 digits.");
-      }
-      if (!eircodeRegex.test(data.eircode)) {
-        return alert("❌ Eircode must start with a number and have 6 alphanumeric chars.");
-      }
-  
-      // If validation passes, send to server
-      const response = await fetch("/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-  
-      const result = await response.json();
-      document.getElementById("result").textContent =
-        JSON.stringify(result, null, 2);
-    });
-  </script>
-  
-  
+      const phoneRegex = /^\d{10}$/;
+      const eircodeRegex = /^\d[A-Za-z0-9]{5}$/;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-</body>
+      const msg = document.getElementById("msg");
+      const form = document.getElementById("userForm");
+
+      function showMessage(text, isError = false) {
+        msg.textContent = text;
+        msg.className = isError ? "msg error" : "msg ok";
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const payload = {
+          first_name: document.getElementById("first_name").value.trim(),
+          second_name: document.getElementById("second_name").value.trim(),
+          email: document.getElementById("email").value.trim(),
+          phone_number: document.getElementById("phone_number").value.trim(),
+          eircode: document.getElementById("eircode").value.trim()
+        };
+
+        const errors = [];
+        if (!nameRegex.test(payload.first_name)) errors.push("First name invalid");
+        if (!nameRegex.test(payload.second_name)) errors.push("Second name invalid");
+        if (!emailRegex.test(payload.email)) errors.push("Email invalid");
+        if (!phoneRegex.test(payload.phone_number)) errors.push("Phone must be exactly 10 digits");
+        if (!eircodeRegex.test(payload.eircode)) errors.push("Eircode must be 6 chars and start with a number");
+
+        if (errors.length) {
+          return showMessage(errors.join(" | "), true);
+        }
+
+        try {
+          const res = await fetch("/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            return showMessage((data.errors || [data.error || "Error"]).join(" | "), true);
+          }
+
+          showMessage("Inserted successfully!");
+          form.reset();
+        } catch (err) {
+          showMessage("Could not connect to server.", true);
+        }
+      });
+    </script>
+  </body>
 </html>

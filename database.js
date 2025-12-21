@@ -1,50 +1,37 @@
 const mysql = require("mysql2/promise");
 
-// Adjust if your username/password are different
 const pool = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  password: "salobro123",
-  database: "ca2_database",
+  host: process.env.DB_HOST || "localhost",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "salobro123",
+  database: process.env.DB_NAME || "ca2_database",
   waitForConnections: true,
   connectionLimit: 10
 });
 
-// Create the table if it doesn't already exist
 async function ensureTable() {
+  
   const sql = `
     CREATE TABLE IF NOT EXISTS mysql_table (
       id INT AUTO_INCREMENT PRIMARY KEY,
-      first_name   VARCHAR(20) NOT NULL,
-      second_name  VARCHAR(20) NOT NULL,
-      email        VARCHAR(255) NOT NULL,
-      phone_number CHAR(10)     NOT NULL,
-      eircode      CHAR(6)      NOT NULL,
-      created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      first_name VARCHAR(20) NOT NULL,
+      second_name VARCHAR(20) NOT NULL,
+      email VARCHAR(255) NOT NULL,
+      phone_number CHAR(10) NOT NULL,
+      eircode CHAR(6) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `;
   await pool.query(sql);
 }
 
-// Insert a user into the table
-async function insertUser(data) {
-  await ensureTable();
-
+async function insertUser({ first_name, second_name, email, phone_number, eircode }) {
   const sql = `
-    INSERT INTO users (first_name, second_name, email, phone_number, eircode)
+    INSERT INTO mysql_table (first_name, second_name, email, phone_number, eircode)
     VALUES (?, ?, ?, ?, ?)
   `;
-
-  const values = [
-    data.first_name,
-    data.second_name,
-    data.email,
-    data.phone_number,
-    data.eircode
-  ];
-
+  const values = [first_name, second_name, email, phone_number, eircode];
   await pool.execute(sql, values);
 }
 
-module.exports = { insertUser };
-
+module.exports = { pool, ensureTable, insertUser };
