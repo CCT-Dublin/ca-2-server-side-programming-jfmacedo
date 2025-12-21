@@ -65,7 +65,7 @@ This rule was chosen to match the provided dataset and keep validation simple an
 
 Database: `ca2_database`
 
-Table: `users`
+Table: `mysql_table`
 
 Fields:
 
@@ -74,7 +74,7 @@ Fields:
 * `second_name` (VARCHAR)
 * `email` (VARCHAR)
 * `phone_number` (CHAR(10))
-* `eircode` (CHAR(7))
+* `eircode` (CHAR(6))
 * `created_at` (TIMESTAMP)
 
 
@@ -89,7 +89,7 @@ npm install
 ### 2. Configure MySQL
 
 * Create database `ca2_database`
-* Create table `users` according to the schema above
+* Create table `mysql_table` according to the schema above
 * Ensure MySQL credentials are correctly configured in `database.js`
 
 ### 3. Run the server
@@ -145,7 +145,6 @@ Access denied for user 'root'@'localhost' (using password: NO)
 **Solution:**
 
 * Properly configured MySQL credentials in the database connection
-
 
 ## Project Status
 
