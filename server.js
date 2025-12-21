@@ -33,18 +33,18 @@ function validatePayload(body) {
   const errors = [];
 
   const first_name = (body.first_name || "").trim();
-  const second_name = (body.second_name || "").trim();
+  const last_name = (body.last_name || "").trim();
   const email = (body.email || "").trim();
   const phone_number = (body.phone_number || "").trim();
   const eircode = (body.eircode || "").trim();
 
   if (!nameRegex.test(first_name)) errors.push("Invalid first_name");
-  if (!nameRegex.test(second_name)) errors.push("Invalid second_name");
+  if (!nameRegex.test(last_name)) errors.push("Invalid last_name");
   if (!emailRegex.test(email)) errors.push("Invalid email");
   if (!phoneRegex.test(phone_number)) errors.push("Invalid phone_number");
   if (!eircodeRegex.test(eircode)) errors.push("Invalid eircode");
 
-  return { errors, cleaned: { first_name, second_name, email, phone_number, eircode } };
+  return { errors, cleaned: { first_name, last_name, email, phone_number, eircode } };
 }
 
 app.get("/", (req, res) => {

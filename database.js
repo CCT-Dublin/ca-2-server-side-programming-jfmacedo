@@ -15,7 +15,7 @@ async function ensureTable() {
     CREATE TABLE IF NOT EXISTS mysql_table (
       id INT AUTO_INCREMENT PRIMARY KEY,
       first_name VARCHAR(20) NOT NULL,
-      second_name VARCHAR(20) NOT NULL,
+      last_name VARCHAR(20) NOT NULL,
       email VARCHAR(255) NOT NULL,
       phone_number CHAR(10) NOT NULL,
       eircode CHAR(6) NOT NULL,
@@ -25,12 +25,12 @@ async function ensureTable() {
   await pool.query(sql);
 }
 
-async function insertUser({ first_name, second_name, email, phone_number, eircode }) {
+async function insertUser({ first_name, last_name, email, phone_number, eircode }) {
   const sql = `
-    INSERT INTO mysql_table (first_name, second_name, email, phone_number, eircode)
+    INSERT INTO mysql_table (first_name, last_name, email, phone_number, eircode)
     VALUES (?, ?, ?, ?, ?)
   `;
-  const values = [first_name, second_name, email, phone_number, eircode];
+  const values = [first_name, last_name, email, phone_number, eircode];
   await pool.execute(sql, values);
 }
 
