@@ -6,9 +6,11 @@ const { ensureTable, insertUser } = require("./database");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Middleware to parse JSON request bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Security middleware to enhance HTTP headers
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -22,8 +24,10 @@ app.use(
   })
 );
 
+// Serve static files (HTML, CSS)
 app.use(express.static(path.join(__dirname, "public")));
 
+// Validation regexes
 const nameRegex = /^[A-Za-z0-9]{1,20}$/;
 const phoneRegex = /^\d{10}$/;
 const eircodeRegex = /^\d[A-Za-z0-9]{5}$/;
@@ -38,6 +42,7 @@ function validatePayload(body) {
   const phone_number = (body.phone_number || "").trim();
   const eircode = (body.eircode || "").trim();
 
+   // Server-side validation
   if (!nameRegex.test(first_name)) errors.push("Invalid first_name");
   if (!nameRegex.test(last_name)) errors.push("Invalid last_name");
   if (!emailRegex.test(email)) errors.push("Invalid email");
@@ -51,11 +56,13 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "form.html"));
 });
 
+   // Route to receive form submissions
 app.post("/submit", async (req, res) => {
   console.log("REQ BODY:", req.body);
 
   const { errors, cleaned } = validatePayload(req.body);
 
+    // If validation fails, return errors
   if (errors.length > 0) {
     console.log("VALIDATION ERRORS:", errors);
     return res.status(400).json({ ok: false, errors });
@@ -71,6 +78,7 @@ app.post("/submit", async (req, res) => {
   }
 });
 
+// Start the Express server
 async function start() {
   try {
     await ensureTable();

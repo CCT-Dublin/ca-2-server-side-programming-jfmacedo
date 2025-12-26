@@ -1,5 +1,7 @@
+// Import mysql2 with promise support
 const mysql = require("mysql2/promise");
 
+// Creating a connection pool to make the handling of multiple database requests more efficient
 const pool = mysql.createPool({
   host: process.env.DB_HOST || "localhost",
   user: process.env.DB_USER || "root",
@@ -9,6 +11,7 @@ const pool = mysql.createPool({
   connectionLimit: 10
 });
 
+// Function that ensures the required table exists before inserting any data
 async function ensureTable() {
   
   const sql = `
@@ -22,6 +25,8 @@ async function ensureTable() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `;
+
+    // Execute the CREATE TABLE query
   await pool.query(sql);
 }
 
@@ -34,4 +39,5 @@ async function insertUser({ first_name, last_name, email, phone_number, eircode 
   await pool.execute(sql, values);
 }
 
+// Make the pool available for export along with the function that checks the table
 module.exports = { pool, ensureTable, insertUser };

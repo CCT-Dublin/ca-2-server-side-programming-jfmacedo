@@ -3,6 +3,7 @@ const path = require("path");
 const csv = require("csv-parser");
 const { insertUser } = require("./database");
 
+// Validation regex patterns
 const nameRegex = /^[A-Za-z0-9]{1,20}$/;
 const phoneRegex = /^[0-9]{10}$/;
 const eircodeRegex = /^[0-9][A-Za-z0-9]{5}$/;
@@ -84,6 +85,7 @@ fs.createReadStream(path.join(__dirname, "personal_information.csv"))
       });
     });
     
+    // Wait for all database inserts to finish
     insertPromises.push(insertPromise);
     
   })
