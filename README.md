@@ -1,67 +1,66 @@
 # CA2 Server-Side Programming (Node.js + Express + MySQL)
 
-## Project Overview
+# Project Overview
 
-This project implements a complete **server-side data submission system** using **Node.js, Express, and MySQL**. It allows users to submit data via an HTML form and also supports **bulk CSV import** with full server-side validation and database persistence.
-
-The project was developed step by step, addressing real-world issues such as validation errors, database authentication problems, and asynchronous behavior in Node.js.
-
-
-## Tech Stack
-
-* **Node.js**
-* **Express.js**
-* **MySQL**
-* **csv-parser** (CSV processing)
-* **Nodemon** (development)
+This project is a full server-side data submission system implementation built with Node.js, Express, and MySQL. Besides HTML form submission, it also supports bulk CSV import. The validation is done both on the client and server sides. In addition, the system is protected by secure headers and the database inserts are reliable and asynchronous.
+The project is like a bug fixing journey of a real-world, which includes module format issues, async pitfalls, and database schema mismatches. It finishes with a neat, stable CommonJS setup.
 
 
-## Features
 
-* HTML form for manual data submission
+# Tech Stack
+
+* Node.js
+* Express.js
+* MySQL (mysql2/promise)
+* csv-parser (CSV processing)
+* Helmet (security headers)
+* Nodemon (development)
+
+
+# Features
+
+* HTML form served by Express (/)
+* Client-side validation + JSON fetch submission
 * Server-side validation for all fields
-* Persistent storage in MySQL database
+* Persistent storage in MySQL
 * CSV bulk import with:
+    * Header normalization
+    * Per-row validation
+    * Error reporting with row numbers
+    * Safe async inserts using Promise.allSettled
 
-  * Header normalization
-  * Per-row validation
-  * Error reporting with row numbers
-  * Safe asynchronous database inserts
 
+# Validation Rules
 
-## Validation Rules
-
-### First Name / Second Name
+# First Name / Second Name
 
 * Accepts real-world names
 * Letters (A–Z, a–z), spaces, hyphens and accents
 * Length: 1 to 40 characters
 
-### Email
+# Email
 
 * Basic email format validation
 
-### Phone Number
+# Phone Number
 
-* **9 or 10 digits**
-* Leading zero is optional
+* Exactly 10 digits
 
-### Eircode
+# Eircode
 
 * **Exactly 6 characters**
-* Accepts **uppercase or lowercase**
-* Accepts **letters and/or numbers only**
+* Exactly 6 characters
+* Must start with a number
 
 Regex used:
 
 ```
-/^[A-Za-z0-9]{6}$/
+/^\d[A-Za-z0-9]{5}$/
 ```
 
-This rule was chosen to match the provided dataset and keep validation simple and consistent.
+These rules are aligned across form.html, server.js, and CSV import.
 
-
-## Database Structure
+# Database Structure
 
 Database: `ca2_database`
 
@@ -71,16 +70,16 @@ Fields:
 
 * `id` (INT, Primary Key, Auto Increment)
 * `first_name` (VARCHAR)
-* `second_name` (VARCHAR)
+* `last_name` (VARCHAR)
 * `email` (VARCHAR)
 * `phone_number` (CHAR(10))
 * `eircode` (CHAR(6))
 * `created_at` (TIMESTAMP)
 
 
-## Setup Instructions
+# Setup Instructions
 
-### 1. Install dependencies
+# 1. Install dependencies
 
 ```bash
 npm install
@@ -92,7 +91,7 @@ npm install
 * Create table `mysql_table` according to the schema above
 * Ensure MySQL credentials are correctly configured in `database.js`
 
-### 3. Run the server
+# 3. Run the server
 
 ```bash
 npm run dev
@@ -104,7 +103,7 @@ Server runs at:
 http://localhost:3000
 ```
 
-### 4. CSV Import
+# 4. CSV Import
 
 To import data from `personal_information.csv`:
 
@@ -121,43 +120,45 @@ Errors: []
 ```
 
 
-## Key Technical Challenges Solved
+# Key Technical Issues Solved #
 
-### Asynchronous CSV Import Issue
+# ES Modules vs CommonJS #
 
-Initially, CSV rows were processed asynchronously, but the script finished before database inserts completed.
+Problems such as:pool.query is not a function
+does not provide an export named 'default'
 
-**Solution:**
 
-* Collect insert promises
-* Ensure all inserts complete before finishing the import
+pool.query is not a function
+does not provide an export named 'default'
 
-This guarantees accurate insertion counts and reliable database persistence.
+Fix: The whole codebase was modernized to CommonJS only.
 
-### Database Authentication Error
+# Asynchronous CSV Import Bug #
 
-Encountered:
+Inserts were done asynchronously
+Script completed before DB writes
 
-```
+Fix:
+Saves insert promises on a per-row basis
+Everything was done after the stream ended with an await on Promise.allSettled()
+
+# MySQL Authentication Error #
+
 Access denied for user 'root'@'localhost' (using password: NO)
-```
 
-**Solution:**
+Fix:
+Corrected credentials in database.js
+Rechecked the working schema and the destination table
 
-* Properly configured MySQL credentials in the database connection
+# Project Status #
 
-## Project Status
-
-Fully functional
-
+* Fully functional
 * Form submission works
 * CSV import works
-* Data is validated and persisted
-* Errors are properly reported
+* Validation consistent
+* Data persists correctly
+* Server stable on localhost
 
-
-## Author
-
-João Filipe Silva de Macedo
-Studant number: 2024535
-
+Author
+* João Filipe Silva de Macedo
+* Student number: 2024535
