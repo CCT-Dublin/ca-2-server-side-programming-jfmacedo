@@ -61,8 +61,12 @@ fs.createReadStream(path.join(__dirname, "personal_information.csv"))
         errors: rowErrors
       });
       return;
+    } else {
+ 
+      console.log(`Row ${rowNumber}:`);
+      console.log(row);
     }
-
+    
     const insertPromise = insertUser({
       first_name,
       last_name,
