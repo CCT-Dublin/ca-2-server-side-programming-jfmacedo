@@ -14,7 +14,7 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", "data:"]
       }
@@ -52,17 +52,22 @@ app.get("/", (req, res) => {
 });
 
 app.post("/submit", async (req, res) => {
+  console.log("REQ BODY:", req.body);
+
   const { errors, cleaned } = validatePayload(req.body);
+
   if (errors.length > 0) {
+    console.log("VALIDATION ERRORS:", errors);
     return res.status(400).json({ ok: false, errors });
   }
 
   try {
     await insertUser(cleaned);
+    console.log("INSERT OK");
     return res.json({ ok: true, message: "Record inserted successfully" });
   } catch (err) {
-    console.error("Error inserting user:", err.message);
-    return res.status(500).json({ ok: false, error: "Server error inserting record" });
+    console.error("DB ERROR:", err.message);
+    return res.status(500).json({ ok: false, error: "DB error" });
   }
 });
 

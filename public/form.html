@@ -52,7 +52,7 @@
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       const msg = document.getElementById("msg");
-      const form = document.getElementById("userForm");
+      const form = document.getElementById("dataForm");
 
       function showMessage(text, isError = false) {
         msg.textContent = text;
@@ -64,7 +64,7 @@
 
         const payload = {
           first_name: document.getElementById("first_name").value.trim(),
-          second_name: document.getElementById("last_name").value.trim(),
+          last_name: document.getElementById("last_name").value.trim(),
           email: document.getElementById("email").value.trim(),
           phone_number: document.getElementById("phone_number").value.trim(),
           eircode: document.getElementById("eircode").value.trim()
